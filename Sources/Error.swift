@@ -6,7 +6,7 @@
 //  Copyright © 2016 Yusuke Ito. All rights reserved.
 //
 
-public enum MiddewareError: ErrorType {
+public enum MiddlewareError: ErrorType {
     case NoContextType(String)
     case AlreadyHasContextType(String)
 }

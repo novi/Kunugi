@@ -16,10 +16,12 @@ struct Responder: ResponderType {
 }
 
 public protocol AppType {
+    //typealias C: ContextBox
     var wrap: [WrapMiddleware] { get }
     var middleware: [MiddlewareType] { get }
     var responder: ResponderType { get }
     func createContext(request: Request) throws -> ContextBox
+    func catchError(e: ErrorType)
 }
 
 
@@ -30,21 +32,24 @@ public extension AppType {
             let ms = self.wrap.reverse()
             var current = compose(self.middleware)
             for m in ms {
-                print("context created \(m)")
                 current = GenericMiddleware(handler: m.genHandler(current))
             }
             
-            switch try current.handleIfNeeded(try self.createContext(request)) {
-            case .Next:
-                return Response(status: .NotFound)
-            case .Respond(let res):
-                return res
+            do {
+                switch try current.handleIfNeeded(try self.createContext(request)) {
+                case .Next:
+                    return Response(status: .NotFound)
+                case .Respond(let res):
+                    return res
+                }
+            } catch(let e) {
+                self.catchError(e)
+                throw e
             }
         }
     }
     
-    func createContext(request: Request) throws -> ContextBox {
-        return Context(request)
+    func catchError(e: ErrorType) {
+        
     }
-    
 }

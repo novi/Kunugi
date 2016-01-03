@@ -15,7 +15,6 @@ public enum MiddlewareResult {
 }
 
 public protocol MiddlewareType: MiddlewareHandleable {
-    
     func handle(ctx: ContextBox) throws -> MiddlewareResult
     func handleIfNeeded(ctx: ContextBox) throws -> MiddlewareResult
 }

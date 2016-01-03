@@ -8,7 +8,8 @@
 
 import HTTP
 
-public protocol ContextBox: class {
+public protocol ContextBox: class, CustomStringConvertible {
+    var context: [ContextType] { get set }
     var request: Request { get set }
     func get<T: ContextType>() throws -> T
     func set(ctx: ContextType) throws
@@ -18,30 +19,25 @@ public protocol ContextType {
     
 }
 
-class Context: ContextBox, CustomStringConvertible {
-    var ctxs: [ContextType] = []
-    var request: Request
-    init(_ request: Request) {
-        self.request = request
-    }
+public extension ContextBox {
     func get<T: ContextType>() throws -> T {
-        for c in ctxs {
+        for c in context {
             if let cc = c as? T {
                 return cc
             }
         }
-        throw MiddewareError.NoContextType("\(T.self)")
+        throw MiddlewareError.NoContextType("\(T.self)")
     }
     func set(ctx: ContextType) throws {
-        for c in ctxs {
+        for c in context {
             if c.dynamicType == ctx.dynamicType {
-                throw MiddewareError.AlreadyHasContextType("\(c.dynamicType)")
+                throw MiddlewareError.AlreadyHasContextType("\(c.dynamicType)")
             }
         }
-        ctxs.insert(ctx, atIndex: 0)
+        context.insert(ctx, atIndex: 0)
     }
     var description: String {
-        return "\(ctxs.map({ return $0.dynamicType.self }))"
+        return "\(context.map({ return $0.dynamicType.self }))"
     }
     
 }
