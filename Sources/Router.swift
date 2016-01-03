@@ -13,6 +13,7 @@ public protocol RouteWrap: MiddlewareType {
     var inner: MiddlewareType { get }
     func rewritePath(path: String) -> String
     func shouldHandle(req: Request, path: String) -> Bool
+    func rewriteBefore(ctx: ContextBox)
 }
 
 public extension RouteWrap {
@@ -63,7 +64,7 @@ public struct Route: RouteWrap {
         self.regEx = try! Regex(pattern: "^" + pattern + "$")
         self.inner = inner
     }
-    func rewriteBefore(ctx: ContextBox) {
+    public func rewriteBefore(ctx: ContextBox) {
         let values = self.regEx.groups(ctx.request.uri.path!)
         
         for (index, key) in paramKeys.enumerate() {

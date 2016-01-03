@@ -9,7 +9,6 @@
 public protocol WrapMiddleware: MiddlewareHandleable {
     func handle(ctx: ContextBox, @noescape yieldNext: () throws -> Void) throws
     func genHandler(inner: MiddlewareType) -> (ContextBox throws -> MiddlewareResult)
-    func rewriteBefore(ctx: ContextBox)
 }
 
 public extension WrapMiddleware {
@@ -28,8 +27,5 @@ public extension WrapMiddleware {
     
     func handle(ctx: ContextBox,  @noescape yieldNext: () throws -> Void ) throws {
         try yieldNext()
-    }
-    func rewriteBefore(ctx: ContextBox) {
-        
     }
 }
