@@ -21,6 +21,9 @@ public extension WrapMiddleware {
             try self.handle(ctx, yieldNext: {
                 res = try inner.handleIfNeeded(ctx)
             })
+            if res == nil {
+                fatalError("call yieldNext() before return handle()")
+            }
             return res!
         }
     }
