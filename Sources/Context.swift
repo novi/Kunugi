@@ -12,7 +12,7 @@ public protocol ContextBox: class, CustomStringConvertible, CustomDebugStringCon
     var context: [ContextType] { get set }
     var request: Request { get set }
     func get<T: ContextType>() throws -> T
-    func set(ctx: ContextType) throws
+    func put(ctx: ContextType) throws
 }
 
 public protocol ContextType { }
@@ -29,7 +29,7 @@ public extension ContextBox {
         }
         throw MiddlewareError.NoContextType("\(T.self)")
     }
-    func set(ctx: ContextType) throws {
+    func put(ctx: ContextType) throws {
         for c in context {
             if c.dynamicType == ctx.dynamicType {
                 throw MiddlewareError.AlreadyHasContextType("\(c.dynamicType)")
