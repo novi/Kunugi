@@ -15,7 +15,7 @@ struct Responder: ResponderType {
     }
 }
 
-public protocol AppType {
+public protocol AppType: MiddlewareType, AnyRequestHandleable {
     var wrap: [WrapMiddleware] { get }
     var middleware: [MiddlewareType] { get }
     var responder: ResponderType { get }
@@ -26,15 +26,25 @@ public protocol AppType {
 
 public extension AppType {
     
-    var responder: ResponderType {
-        return Responder{ request in
-            let ms = self.wrap.reverse()
+    var handler: MiddlewareType {
+        return GenericMiddleware { ctx in
             var current = compose(self.middleware)
-            for m in ms {
+            for m in self.wrap.reverse() {
                 current = GenericMiddleware(handler: m.genHandler(current))
             }
+            return try current.handleIfNeeded(ctx)
+        }
+    }
+    
+    func handle(ctx: ContextBox) throws -> MiddlewareResult {
+        return try handler.handleIfNeeded(ctx)
+    }
+    
+    var responder: ResponderType {
+        let handler = self.handler
+        return Responder{ request in
             do {
-                switch try current.handleIfNeeded(try self.createContext(request)) {
+                switch try handler.handleIfNeeded(try self.createContext(request)) {
                 case .Next:
                     return Response(status: .NotFound)
                 case .Respond(let res):
