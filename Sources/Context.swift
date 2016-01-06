@@ -8,19 +8,20 @@
 
 import HTTP
 
-public protocol ContextBox: class, CustomStringConvertible {
+public protocol ContextBox: class, CustomStringConvertible, CustomDebugStringConvertible {
     var context: [ContextType] { get set }
     var request: Request { get set }
     func get<T: ContextType>() throws -> T
     func set(ctx: ContextType) throws
 }
 
-public protocol ContextType {
-    
-}
+public protocol ContextType { }
 
 public extension ContextBox {
     func get<T: ContextType>() throws -> T {
+        if let box = self as? T {
+            return box
+        }
         for c in context {
             if let cc = c as? T {
                 return cc
@@ -36,8 +37,13 @@ public extension ContextBox {
         }
         context.insert(ctx, atIndex: 0)
     }
+}
+
+public extension ContextBox {
     var description: String {
         return "\(context.map({ return $0.dynamicType.self }))"
     }
-    
+    var debugDescription: String {
+        return "\(context)"
+    }
 }

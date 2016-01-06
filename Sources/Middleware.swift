@@ -70,17 +70,17 @@ return (path == "*" || (req.uri.path ?? "") == path)
 }
 }*/
 
-public protocol AnyRequestHandlable: MiddlewareHandleable {
+public protocol AnyRequestHandleable: MiddlewareHandleable {
 }
 
-public extension AnyRequestHandlable {
+public extension AnyRequestHandleable {
     public func shouldHandle(req: Request) -> Bool {
         return true
     }
 }
 
 
-struct GenericMiddleware: MiddlewareType, AnyRequestHandlable {
+struct GenericMiddleware: MiddlewareType, AnyRequestHandleable {
     let handler: ContextBox throws -> MiddlewareResult
     func handle(ctx: ContextBox) throws -> MiddlewareResult {
         return try handler(ctx)

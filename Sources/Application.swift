@@ -16,7 +16,6 @@ struct Responder: ResponderType {
 }
 
 public protocol AppType {
-    //typealias C: ContextBox
     var wrap: [WrapMiddleware] { get }
     var middleware: [MiddlewareType] { get }
     var responder: ResponderType { get }
@@ -34,7 +33,6 @@ public extension AppType {
             for m in ms {
                 current = GenericMiddleware(handler: m.genHandler(current))
             }
-            
             do {
                 switch try current.handleIfNeeded(try self.createContext(request)) {
                 case .Next:
