@@ -27,8 +27,15 @@ public extension RouteWrap {
         return shouldHandle(req, path: path)
     }
     func handle(ctx: ContextBox) throws -> MiddlewareResult {
+        let orig = ctx.request
         rewriteBefore(ctx)
-        return try inner.handleIfNeeded(ctx)
+        let res = try inner.handleIfNeeded(ctx)
+        switch res {
+        case .Next:
+            ctx.request = orig
+        default: break
+        }
+        return res
     }
     func rewriteBefore(ctx: ContextBox) {
         let req = ctx.request
@@ -40,7 +47,7 @@ public extension RouteWrap {
         if path == newPath {
             return
         }
-        print("\(path) > \(newPath)")
+        print("\(path) > \(newPath)(\(newPath.characters.count))")
         let newUri = URI(scheme: uri.scheme, userInfo: uri.userInfo, host: uri.host, port: uri.port, path: newPath, query: uri.query, fragment: uri.fragment)
         
         ctx.request = Request(method: req.method, uri: newUri, majorVersion: req.majorVersion, minorVersion: req.minorVersion, headers: req.headers, body: req.body)
