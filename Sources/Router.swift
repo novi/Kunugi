@@ -57,58 +57,79 @@ public extension RouteWrap {
 
 public struct Route: RouteWrap {
     
+    struct PathMatch {
+        let patts: [String] // /:id/sub/:val -> :id, sub, :val
+        let paramKeys: [String?] // -> "id", nil, "val"
+        init?(_ pattern: String) {
+            if pattern.characters.contains(":") == false {
+                return nil
+            }
+            self.patts = pattern.characters.split("/").map(String.init)
+            for p in patts {
+                if p.characters.count == 0 {
+                    print("invalid path pattern \(pattern)")
+                    return nil
+                }
+            }
+            let keys:[String?] = patts.map{ $0.characters.count > 0 && $0.characters.first == Character(":") ? $0 : nil }
+            self.paramKeys = keys.map({ $0.flatMap({ $0[$0.startIndex.advancedBy(1)..<$0.endIndex] }) }) // trim first ":" each key
+            //print(patts, paramKeys)
+        }
+        func match(path: String) -> [String: String] {
+            let pathSlice = path.characters.split("/").map(String.init)
+            if pathSlice.count != patts.count {
+                return [:]
+            }
+            var params:[String:String] = [:]
+            for i in 0..<pathSlice.count {
+                if let key = paramKeys[i] {
+                    params[key] = pathSlice[i]
+                } else {
+                    if pathSlice[i] != patts[i] {
+                        return [:]
+                    }
+                }
+            }
+            return params
+        }
+        func match(path: String) -> Bool {
+            return (match(path) as [String: String]).count > 0
+        }
+    }
+    
     enum Pattern {
-        case RegEx(NSRegularExpression)
+        case Match(PathMatch)
         case Path(String)
     }
     let pattern: Pattern
-    let paramKeys: [String]
     
     public let inner: MiddlewareType
     public func shouldHandle(req: Request, path: String) -> Bool {
         switch pattern {
         case .Path(let pat):
             return pat == path
-        case .RegEx(let regex):
-            let res = regex.matchesInString(path, options: [], range: NSRange(location: 0, length: path.characters.count)).count > 0
-            return res
+        case .Match(let match):
+            return match.match(path)
         }
     }
     
     public init(_ path: String, _ inner: MiddlewareType) {
         self.inner = inner
-        
-        let paramRegEx = try! NSRegularExpression(pattern: ":(\\w+)", options: [])
-        
-        let pattern = NSMutableString(string: path)
-        let matchCount = paramRegEx.replaceMatchesInString(pattern, options: [], range: NSRange(location: 0, length: pattern.length), withTemplate: "([\\\\w_-]+)")
-        if matchCount == 0 {
-            self.paramKeys = []
+        if let match = PathMatch(path) {
+            self.pattern = .Match(match)
+        } else {
             self.pattern = .Path(path)
-            return
         }
-        let pathStr = NSString(string: path)
-        self.paramKeys = paramRegEx.matchesInString(pathStr as String, options: [], range: NSRange(location: 0, length: pathStr.length)).enumerate().map({ pathStr.substringWithRange($0.1.rangeAtIndex(1)) })
-        // escape / to \/
-        pattern.replaceOccurrencesOfString("/", withString: "\\/", options: [], range: NSRange(location: 0, length: pattern.length))
-        self.pattern = .RegEx(try! NSRegularExpression(pattern: "^" + (pattern as String) + "$", options: []))
     }
     public func rewriteBefore(ctx: ContextBox) {
-        if paramKeys.count == 0 {
-            return
-        }
         guard let path = ctx.request.uri.path where path.characters.count > 0 else {
             return
         }
         switch pattern {
-        case .RegEx(let regex):
-            let pathStr = NSString(string: path)
-            guard let result = regex.matchesInString(pathStr as String, options: [], range: NSRange(location: 0, length: pathStr.length)).first where result.numberOfRanges == paramKeys.count+1 else {
-                break
-            }
-            for i in 1..<result.numberOfRanges {
-                let value = pathStr.substringWithRange(result.rangeAtIndex(i))
-                ctx.request.parameters[paramKeys[i-1]] = value
+        case .Match(let match):
+            for (k, v) in match.match(path) {
+                ctx.request.parameters[
+                    k] = v
             }
         default: break
         }
