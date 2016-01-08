@@ -36,11 +36,11 @@ public protocol MiddlewareHandleable {
 
 
 
-public protocol MethodHandleType: MiddlewareHandleable {
+public protocol MethodHandleable: MiddlewareHandleable {
     var methods: Set<HTTP.Method> { get }
 }
 
-public extension MethodHandleType {
+public extension MethodHandleable {
     var methods: Set<HTTP.Method> {
         return Set([
             .DELETE,
@@ -56,20 +56,6 @@ public extension MethodHandleType {
     }
 }
 
-/*protocol PathHandleType: MiddewareHandlable {
-var path: String { get }
-
-}
-
-extension PathHandleType {
-var path: String {
-return "*"
-}
-func shouldHandle(req: Request) -> Bool {
-return (path == "*" || (req.uri.path ?? "") == path)
-}
-}*/
-
 public protocol AnyRequestHandleable: MiddlewareHandleable {
 }
 
@@ -79,9 +65,10 @@ public extension AnyRequestHandleable {
     }
 }
 
+public typealias MiddlewareHandler = ContextBox throws -> MiddlewareResult
 
 struct GenericMiddleware: MiddlewareType, AnyRequestHandleable {
-    let handler: ContextBox throws -> MiddlewareResult
+    let handler: MiddlewareHandler
     func handle(ctx: ContextBox) throws -> MiddlewareResult {
         return try handler(ctx)
     }

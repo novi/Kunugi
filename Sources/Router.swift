@@ -105,3 +105,63 @@ public struct Mount: RouteWrap {
         self.inner = inner
     }
 }
+
+public class Router: MiddlewareType {
+    var outer: MiddlewareType = GenericMiddleware { ctx in .Next }
+    var routes: [MiddlewareType] = []
+    
+    struct MethodMiddleware: MethodHandleable, MiddlewareType {
+        let methods: Set<HTTP.Method>
+        let handler: MiddlewareHandler
+        func handle(ctx: ContextBox) throws -> MiddlewareResult {
+            return try handler(ctx)
+        }
+    }
+    
+    
+    public init() {
+        
+    }
+    
+    func handle(methods: Set<HTTP.Method>, path: String, handler: MiddlewareHandler) {
+        routes.append(Route(path, MethodMiddleware(methods: methods, handler: handler)))
+        self.outer = compose(routes)
+    }
+    
+    public func all(path: String, _ handler: MiddlewareHandler) {
+        handle(Set([
+            .DELETE,
+            .GET,
+            .HEAD,
+            .POST,
+            .PUT,
+            .OPTIONS
+            ]), path: path, handler: handler)
+    }
+    
+    public func get(path: String, _ handler: MiddlewareHandler) {
+        handle(Set([.GET]), path: path, handler: handler)
+    }
+    
+    public func post(path: String, _ handler: MiddlewareHandler) {
+        handle(Set([.POST]), path: path, handler: handler)
+    }
+    
+    public func put(path: String, _ handler: MiddlewareHandler) {
+        handle(Set([.PUT]), path: path, handler: handler)
+    }
+    
+    public func delete(path: String, _ handler: MiddlewareHandler) {
+        handle(Set([.DELETE]), path: path, handler: handler)
+    }
+    
+    public func shouldHandle(req: Request) -> Bool {
+        return outer.shouldHandle(req)
+    }
+    public func handle(ctx: ContextBox) throws -> MiddlewareResult {
+        return try outer.handle(ctx)
+    }
+}
+
+
+
