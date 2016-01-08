@@ -13,6 +13,8 @@ _Note:_ This is in early development project.
 Define your context and app.
 
 ```swift
+import Kunugi
+
 class Context: ContextBox {
     var context: [ContextType] = []
     var request: Request
