@@ -7,7 +7,7 @@
 //
 
 public protocol WrapMiddleware: MiddlewareHandleable {
-    func handle(ctx: ContextBox, @noescape yieldNext: () throws -> Void) throws
+    func handle(ctx: ContextBox, @noescape yieldNext: () throws -> MiddlewareResult) throws -> MiddlewareResult
     func genHandler(inner: MiddlewareType) -> (ContextBox throws -> MiddlewareResult)
 }
 
@@ -17,18 +17,13 @@ public extension WrapMiddleware {
             if self.shouldHandle(ctx.request) == false {
                 return try inner.handleIfNeeded(ctx)
             }
-            var res: MiddlewareResult?
-            try self.handle(ctx, yieldNext: {
-                res = try inner.handleIfNeeded(ctx)
+            return try self.handle(ctx, yieldNext: {
+                return try inner.handleIfNeeded(ctx)
             })
-            if res == nil {
-                fatalError("call yieldNext() before return handle()")
-            }
-            return res!
         }
     }
     
-    func handle(ctx: ContextBox,  @noescape yieldNext: () throws -> Void ) throws {
-        try yieldNext()
+    func handle(ctx: ContextBox,  @noescape yieldNext: () throws -> MiddlewareResult ) throws -> MiddlewareResult {
+        return try yieldNext()
     }
 }

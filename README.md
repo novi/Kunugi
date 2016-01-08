@@ -1,6 +1,6 @@
 # Kunugi
 
-Kunugi(椚) is minimal web framework and middleware systems for Swift. This is inpired by Node.js' [Koa](http://koajs.com) and [Connect](https://github.com/senchalabs/connect).
+Kunugi(椚) is minimal web framework and middleware systems for Swift. This is inpired by Node.js' [Koa](http://koajs.com).
 
 Kunugi doesn't provide http server its self. It works with [Epoch](https://github.com/Zewo/Epoch).
 
