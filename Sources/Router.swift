@@ -56,26 +56,61 @@ public extension RouteWrap {
 }
 
 public struct Route: RouteWrap {
-    let regEx: Regex
-    public let inner: MiddlewareType
+    
+    enum Pattern {
+        case RegEx(NSRegularExpression)
+        case Path(String)
+    }
+    let pattern: Pattern
     let paramKeys: [String]
     
+    public let inner: MiddlewareType
     public func shouldHandle(req: Request, path: String) -> Bool {
-        return regEx.matches(path)
+        switch pattern {
+        case .Path(let pat):
+            return pat == path
+        case .RegEx(let regex):
+            let res = regex.matchesInString(path, options: [], range: NSRange(location: 0, length: path.characters.count)).count > 0
+            return res
+        }
     }
+    
     public init(_ path: String, _ inner: MiddlewareType) {
-        let paramRegExp = try! Regex(pattern: ":([[:alnum:]]+)")
-        let pattern = paramRegExp.replace(path, withTemplate: "([[:alnum:]_-]+)")
-        
-        self.paramKeys = paramRegExp.groups(path)
-        self.regEx = try! Regex(pattern: "^" + pattern + "$")
         self.inner = inner
+        
+        let paramRegEx = try! NSRegularExpression(pattern: ":(\\w+)", options: [])
+        
+        let pattern = NSMutableString(string: path)
+        let matchCount = paramRegEx.replaceMatchesInString(pattern, options: [], range: NSRange(location: 0, length: pattern.length), withTemplate: "([\\\\w_-]+)")
+        if matchCount == 0 {
+            self.paramKeys = []
+            self.pattern = .Path(path)
+            return
+        }
+        let pathStr = NSString(string: path)
+        self.paramKeys = paramRegEx.matchesInString(pathStr as String, options: [], range: NSRange(location: 0, length: pathStr.length)).enumerate().map({ pathStr.substringWithRange($0.1.rangeAtIndex(1)) })
+        // escape / to \/
+        pattern.replaceOccurrencesOfString("/", withString: "\\/", options: [], range: NSRange(location: 0, length: pattern.length))
+        self.pattern = .RegEx(try! NSRegularExpression(pattern: "^" + (pattern as String) + "$", options: []))
     }
     public func rewriteBefore(ctx: ContextBox) {
-        let values = self.regEx.groups(ctx.request.uri.path!)
-        
-        for (index, key) in paramKeys.enumerate() {
-            ctx.request.parameters[key] = values[index]
+        if paramKeys.count == 0 {
+            return
+        }
+        guard let path = ctx.request.uri.path where path.characters.count > 0 else {
+            return
+        }
+        switch pattern {
+        case .RegEx(let regex):
+            let pathStr = NSString(string: path)
+            guard let result = regex.matchesInString(pathStr as String, options: [], range: NSRange(location: 0, length: pathStr.length)).first where result.numberOfRanges == paramKeys.count+1 else {
+                break
+            }
+            for i in 1..<result.numberOfRanges {
+                let value = pathStr.substringWithRange(result.rangeAtIndex(i))
+                ctx.request.parameters[paramKeys[i-1]] = value
+            }
+        default: break
         }
     }
 }
