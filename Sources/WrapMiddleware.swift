@@ -14,7 +14,7 @@ public protocol WrapMiddleware: MiddlewareHandleable {
 public extension WrapMiddleware {
     func genHandler(inner: MiddlewareType) -> (ContextBox throws -> MiddlewareResult) {
         return { ctx in
-            if self.shouldHandle(ctx.request) == false {
+            if self.shouldHandle(ctx) == false {
                 return try inner.handleIfNeeded(ctx)
             }
             return try self.handle(ctx, yieldNext: {

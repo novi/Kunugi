@@ -6,7 +6,6 @@
 //  Copyright © 2016 Yusuke Ito. All rights reserved.
 //
 
-
 public protocol ControllerMiddleware: MiddlewareType {
     func get(ctx: ContextBox) throws -> MiddlewareResult
     func post(ctx: ContextBox) throws -> MiddlewareResult
@@ -27,7 +26,7 @@ public extension ControllerMiddleware {
         switch try before(ctx) {
         case .Next:
             let result: MiddlewareResult
-            switch ctx.request.method {
+            switch ctx.method {
             case .GET:
                 result = try get(ctx)
             case .POST:

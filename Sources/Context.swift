@@ -6,13 +6,15 @@
 //  Copyright © 2016 Yusuke Ito. All rights reserved.
 //
 
-import HTTP
-
 public protocol ContextBox: class, CustomStringConvertible, CustomDebugStringConvertible {
     var context: [ContextType] { get set }
-    var request: Request { get set }
+    
     func get<T: ContextType>() throws -> T
     func put(ctx: ContextType) throws
+    
+    var path: String { get set } // current path
+    var params: [String: String] { get set }
+    var method: Method { get }
 }
 
 public protocol ContextType { }
