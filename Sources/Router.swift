@@ -8,6 +8,7 @@
 
 import HTTP
 import Core
+import Foundation
 
 public protocol RouteWrap: MiddlewareType {
     var inner: MiddlewareType { get }
