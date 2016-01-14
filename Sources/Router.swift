@@ -118,7 +118,7 @@ public struct Route: RouteWrap {
         switch pattern {
         case .Match(let match):
             for (k, v) in match.match(path) {
-                ctx.params[k] = v
+                ctx.parameters[k] = v
             }
         default: break
         }

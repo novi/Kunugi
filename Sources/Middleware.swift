@@ -6,6 +6,10 @@
 //  Copyright © 2016 Yusuke Ito. All rights reserved.
 //
 
+import HTTP
+
+public typealias ResponseType = HTTP.Response
+
 public enum MiddlewareResult {
     case Next
     case Respond(ResponseType)

@@ -12,9 +12,9 @@ public protocol ContextBox: class, CustomStringConvertible, CustomDebugStringCon
     func get<T: ContextType>() throws -> T
     func put(ctx: ContextType) throws
     
+    var method: Method { get set }
     var path: String { get set } // current path
-    var params: [String: String] { get set }
-    var method: Method { get }
+    var parameters: [String: String] { get set }
 }
 
 public protocol ContextType { }
