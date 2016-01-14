@@ -18,6 +18,7 @@
 		5226617F1C392E340055E771 /* Middleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522661781C392E340055E771 /* Middleware.swift */; };
 		522661801C392E340055E771 /* Router.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522661791C392E340055E771 /* Router.swift */; };
 		522661981C392F6E0055E771 /* WrapMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522661971C392F6E0055E771 /* WrapMiddleware.swift */; };
+		52F5F4941C468525008D2B3A /* Method.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52F5F4931C468525008D2B3A /* Method.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 		522661781C392E340055E771 /* Middleware.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Middleware.swift; sourceTree = "<group>"; };
 		522661791C392E340055E771 /* Router.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Router.swift; sourceTree = "<group>"; };
 		522661971C392F6E0055E771 /* WrapMiddleware.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WrapMiddleware.swift; sourceTree = "<group>"; };
+		52F5F4931C468525008D2B3A /* Method.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Method.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,6 +116,7 @@
 				522661781C392E340055E771 /* Middleware.swift */,
 				522661791C392E340055E771 /* Router.swift */,
 				522661971C392F6E0055E771 /* WrapMiddleware.swift */,
+				52F5F4931C468525008D2B3A /* Method.swift */,
 			);
 			name = Sources;
 			path = ../../../Sources;
@@ -235,6 +238,7 @@
 				5226617E1C392E340055E771 /* Error.swift in Sources */,
 				5226617D1C392E340055E771 /* Controller.swift in Sources */,
 				522661981C392F6E0055E771 /* WrapMiddleware.swift in Sources */,
+				52F5F4941C468525008D2B3A /* Method.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

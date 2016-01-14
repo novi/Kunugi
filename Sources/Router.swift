@@ -6,14 +6,12 @@
 //  Copyright © 2016 Yusuke Ito. All rights reserved.
 //
 
-import HTTP
-import Core
 import Foundation
 
 public protocol RouteWrap: MiddlewareType {
     var inner: MiddlewareType { get }
     func rewritePath(path: String) -> String
-    func shouldHandle(req: Request, path: String) -> Bool
+    func shouldHandle(ctx: ContextBox, path: String) -> Bool
     func rewriteBefore(ctx: ContextBox)
 }
 
@@ -21,37 +19,27 @@ public extension RouteWrap {
     func rewritePath(path: String) -> String {
         return path
     }
-    func shouldHandle(req: Request) -> Bool {
-        guard let path = req.uri.path else {
-            return false
-        }
-        return shouldHandle(req, path: path)
+    func shouldHandle(ctx: ContextBox) -> Bool {
+        return shouldHandle(ctx, path: ctx.path)
     }
     func handle(ctx: ContextBox) throws -> MiddlewareResult {
-        let orig = ctx.request
+        let orig = ctx.path
         rewriteBefore(ctx)
         let res = try inner.handleIfNeeded(ctx)
         switch res {
         case .Next:
-            ctx.request = orig
+            ctx.path = orig
         default: break
         }
         return res
     }
     func rewriteBefore(ctx: ContextBox) {
-        let req = ctx.request
-        let uri = req.uri
-        guard let path = req.uri.path else {
+        let newPath = rewritePath(ctx.path)
+        if ctx.path == newPath {
             return
         }
-        let newPath = rewritePath(path)
-        if path == newPath {
-            return
-        }
-        print("\(path) > \(newPath)(\(newPath.characters.count))")
-        let newUri = URI(scheme: uri.scheme, userInfo: uri.userInfo, host: uri.host, port: uri.port, path: newPath, query: uri.query, fragment: uri.fragment)
-        
-        ctx.request = Request(method: req.method, uri: newUri, majorVersion: req.majorVersion, minorVersion: req.minorVersion, headers: req.headers, body: req.body)
+        print("\(ctx.path) > \(newPath)(\(newPath.characters.count))")
+        ctx.path = newPath
         return
     }
 }
@@ -105,7 +93,7 @@ public struct Route: RouteWrap {
     let pattern: Pattern
     
     public let inner: MiddlewareType
-    public func shouldHandle(req: Request, path: String) -> Bool {
+    public func shouldHandle(ctx: ContextBox, path: String) -> Bool {
         switch pattern {
         case .Path(let pat):
             return pat == path
@@ -123,14 +111,14 @@ public struct Route: RouteWrap {
         }
     }
     public func rewriteBefore(ctx: ContextBox) {
-        guard let path = ctx.request.uri.path where path.characters.count > 0 else {
+        let path = ctx.path
+        guard path.characters.count > 0 else {
             return
         }
         switch pattern {
         case .Match(let match):
             for (k, v) in match.match(path) {
-                ctx.request.parameters[
-                    k] = v
+                ctx.parameters[k] = v
             }
         default: break
         }
@@ -141,7 +129,7 @@ public struct Mount: RouteWrap {
     let prefix: String
     public let inner: MiddlewareType
     
-    public func shouldHandle(req: Request, path: String) -> Bool {
+    public func shouldHandle(ctx: ContextBox, path: String) -> Bool {
         if path.hasPrefix(prefix) {
             let newPath = rewritePath(path)
             // check that "/private" does not match "/privateeee"
@@ -168,7 +156,7 @@ public class Router: MiddlewareType {
     var routes: [MiddlewareType] = []
     
     struct MethodMiddleware: MethodHandleable, MiddlewareType {
-        let methods: Set<HTTP.Method>
+        let methods: Set<Method>
         let handler: MiddlewareHandler
         func handle(ctx: ContextBox) throws -> MiddlewareResult {
             return try handler(ctx)
@@ -180,7 +168,7 @@ public class Router: MiddlewareType {
         
     }
     
-    func handle(methods: Set<HTTP.Method>, path: String, handler: MiddlewareHandler) {
+    func handle(methods: Set<Method>, path: String, handler: MiddlewareHandler) {
         routes.append(Route(path, MethodMiddleware(methods: methods, handler: handler)))
         self.outer = compose(routes)
     }
@@ -212,8 +200,8 @@ public class Router: MiddlewareType {
         handle(Set([.DELETE]), path: path, handler: handler)
     }
     
-    public func shouldHandle(req: Request) -> Bool {
-        return outer.shouldHandle(req)
+    public func shouldHandle(ctx: ContextBox) -> Bool {
+        return outer.shouldHandle(ctx)
     }
     public func handle(ctx: ContextBox) throws -> MiddlewareResult {
         return try outer.handle(ctx)

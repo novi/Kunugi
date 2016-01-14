@@ -18,8 +18,15 @@ import Kunugi
 class Context: ContextBox {
     var context: [ContextType] = []
     var request: Request
+    
+    var method: Method
+    var path: String
+    var parameters: [String: String] = [:]
+    
     init(request: Request) {
     	self.request = request
+    	self.path = request.path
+    	self.method = Method(request.method)
     }
 }
 
@@ -39,6 +46,8 @@ class App: AppType {
     func createContext(request: Request) throws -> ContextBox {
         return Context(request: request)
     }
+    
+    ...
 }
 
 ```

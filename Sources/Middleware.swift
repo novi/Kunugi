@@ -7,11 +7,12 @@
 //
 
 import HTTP
-import Core
+
+public typealias ResponseType = HTTP.Response
 
 public enum MiddlewareResult {
     case Next
-    case Respond(Response)
+    case Respond(ResponseType)
 }
 
 public protocol MiddlewareType: MiddlewareHandleable {
@@ -22,7 +23,7 @@ public protocol MiddlewareType: MiddlewareHandleable {
 public extension MiddlewareType {
     
     public func handleIfNeeded(ctx: ContextBox) throws -> MiddlewareResult {
-        guard shouldHandle(ctx.request) else {
+        guard shouldHandle(ctx) else {
             return .Next
         }
         return try handle(ctx)
@@ -31,17 +32,17 @@ public extension MiddlewareType {
 
 
 public protocol MiddlewareHandleable {
-    func shouldHandle(req: Request) -> Bool
+    func shouldHandle(ctx: ContextBox) -> Bool
 }
 
 
 
 public protocol MethodHandleable: MiddlewareHandleable {
-    var methods: Set<HTTP.Method> { get }
+    var methods: Set<Method> { get }
 }
 
 public extension MethodHandleable {
-    var methods: Set<HTTP.Method> {
+    var methods: Set<Method> {
         return Set([
             .DELETE,
             .GET,
@@ -51,8 +52,8 @@ public extension MethodHandleable {
             .OPTIONS
             ])
     }
-    func shouldHandle(req: Request) -> Bool {
-        return methods.contains(req.method)
+    func shouldHandle(ctx: ContextBox) -> Bool {
+        return methods.contains(ctx.method)
     }
 }
 
@@ -60,7 +61,7 @@ public protocol AnyRequestHandleable: MiddlewareHandleable {
 }
 
 public extension AnyRequestHandleable {
-    public func shouldHandle(req: Request) -> Bool {
+    public func shouldHandle(ctx: ContextBox) -> Bool {
         return true
     }
 }
