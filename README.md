@@ -4,7 +4,11 @@ Kunugi(椚) is minimal web framework and middleware systems for Swift. This is i
 
 Kunugi doesn't provide http server its self. It provides [Nest Interface](https://github.com/nestproject/Nest).
 
-See [example project](https://github.com/novi/todoapi-example/tree/experimental/todoapi/todoapi) until documents is done.
+See some example projects until documents is done.
+
+* [Kunugi-Examples](https://github.com/novi/Kunugi-Examples)
+* [todoapi](https://github.com/novi/todoapi-example/tree/experimental/todoapi/todoapi)
+
 
 _Note:_ This is in early development project.
 
@@ -59,13 +63,13 @@ Create your request handler.
 // Closure style handler with routes
 let router = Router()
 router.get("/hello") { ctx in
-    return .Respond(Response(status: .Ok, body: "world"))
+    return .Respond(Response(.Ok, body: "world"))
 }
 
 // Controller style handler
 struct HelloController: ControllerMiddleware, AnyRequestHandleable {
     func post(ctx: ContextBox) throws -> MiddlewareResult {
-        return .Respond(Response(status: .Ok, body: "hello world"))
+        return .Respond(Response(.Ok, body: "hello world"))
     }
 }
 
