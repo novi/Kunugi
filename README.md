@@ -48,11 +48,9 @@ class App: AppType {
         middleware.append(m)
     }
     
-    func createContext(request: Request) throws -> ContextBox {
-        return Context(request: request)
-    }
-    
-    ...
+    var application: Application {
+    	... // root handler for your server
+	}
 }
 
 ```
@@ -75,7 +73,7 @@ struct HelloController: ControllerMiddleware, AnyRequestHandleable {
 
 ```
 
-Stack your middleware to the app.
+Stack your middleware to the app and start your server.
 
 ```swift
 let app = App()
@@ -86,7 +84,7 @@ app.use(BodyParser())
 app.use(router)
 app.use( Route("/helloworld", HelloController()) )
 
-Server(port: 3000, responder: app.application).start()
+Server(port: 3000, app.application).start()
 ```
 
 # Requirements
