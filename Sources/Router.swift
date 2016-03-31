@@ -53,7 +53,7 @@ public struct Route: RouteWrap {
             if pattern.characters.contains(":") == false {
                 return nil
             }
-            self.patts = pattern.characters.split("/").map(String.init)
+            self.patts = pattern.characters.split(separator: "/", maxSplits: Int.max, omittingEmptySubsequences: false).map(String.init)
             for p in patts {
                 if p.characters.count == 0 {
                     print("invalid path pattern \(pattern)")
@@ -61,11 +61,11 @@ public struct Route: RouteWrap {
                 }
             }
             let keys:[String?] = patts.map{ $0.characters.count > 0 && $0.characters.first == Character(":") ? $0 : nil }
-            self.paramKeys = keys.map({ $0.flatMap({ $0[$0.startIndex.advancedBy(1)..<$0.endIndex] }) }) // trim first ":" each key
+            self.paramKeys = keys.map({ $0.flatMap({ $0[$0.startIndex.advanced(by: 1)..<$0.endIndex] }) }) // trim first ":" each key
             //print(patts, paramKeys)
         }
         func match(path: String) -> [String: String] {
-            let pathSlice = path.characters.split("/").map(String.init)
+            let pathSlice = path.characters.split(separator: "/", maxSplits: Int.max, omittingEmptySubsequences: false).map(String.init)
             if pathSlice.count != patts.count {
                 return [:]
             }
@@ -142,7 +142,7 @@ public struct Mount: RouteWrap {
     }
     public func rewritePath(path: String) -> String {
         var newPath = path
-        newPath.replaceRange(prefix.startIndex..<prefix.startIndex.advancedBy(prefix.characters.count), with: "")
+        newPath.replaceSubrange(prefix.startIndex..<prefix.startIndex.advanced(by: prefix.characters.count), with: "")
         return newPath
     }
     public init(_ prefix: String, _ inner: MiddlewareType) {

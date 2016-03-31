@@ -17,7 +17,7 @@ public extension AppType {
     var handler: MiddlewareType {
         return GenericMiddleware { ctx in
             var current = compose(self.middleware)
-            for m in self.wrap.reverse() {
+            for m in self.wrap.reversed() {
                 current = GenericMiddleware(handler: m.genHandler(current))
             }
             return try current.handleIfNeeded(ctx)

@@ -37,7 +37,7 @@ public extension ContextBox {
                 throw MiddlewareError.AlreadyHasContextType("\(c.dynamicType)")
             }
         }
-        context.insert(ctx, atIndex: 0)
+        context.insert(ctx, at: 0)
     }
 }
 
